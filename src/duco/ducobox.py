@@ -226,7 +226,7 @@ class DucoNode(object):
         cfgparser.set(section, 'name', self.name)
         cfgparser.set(section, 'number', self.number)
         cfgparser.set(section, 'address', self.address)
-        cfgparser.set(section, 'blacklist', self.blacklist)
+        cfgparser.set(section, 'blacklist', self.blacklist.__str__())
 
     def _load(self, cfgparser):
         '''
@@ -596,7 +596,7 @@ class DucoInterface(object):
     '''Class for interfacing with Duco devices'''
 
     LIST_NETWORK_COMMAND = r'network'
-    MATCH_NETWORK_COMMAND = r'^\s*(?P<node>\d+)\s*\|\s*(?P<address>\d+)\s*\|\s*(?P<kind>\w+).*$'
+    MATCH_NETWORK_COMMAND = r'^\s*(?P<node>\d+)\s*\|\s*(?P<netw>\w+)\s*\|\s*(?P<address>\d+)\s*\|\s*(?P<sub>\d+)\s*\|\s*(?P<kind>\w+).*$'
 
     def __init__(self, port='/dev/ttyUSB0', cfgfile=None):
         '''
@@ -721,13 +721,12 @@ class DucoInterface(object):
             self._serial.write('\r'.encode())
             time.sleep(SERIAL_CHAR_INTERVAL)
             self._serial.readline()
-            cmd = command.encode('utf-8')
-            for c in cmd:
+            for c in command:
                 time.sleep(SERIAL_CHAR_INTERVAL)
-                self._serial.write(c)
+                self._serial.write(bytes(c, 'ascii'))
             time.sleep(SERIAL_CHAR_INTERVAL)
             self._serial.write('\r'.encode())
-            reply = str(self._serial.readline()).replace('\r', '\n')
+            reply = str(self._serial.readline()).replace('\\r', '\n')
             logging.debug('Serial reply:\n{reply}'.format(reply=reply))
         else:
             logging.warning('No serial device')
